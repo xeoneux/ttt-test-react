@@ -4,25 +4,15 @@ const path = require("path");
 
 const url = "http://terriblytinytales.com/test.txt";
 
-const fetchText = url => {
-  return new Promise((resolve, reject) => {
-    http
-      .get(url, response => {
-        let data = "";
-
-        response.on("data", chunk => {
-          data += chunk;
-        });
-
-        response.on("end", () => {
-          resolve(data);
-        });
-      })
-      .on("error", error => {
-        reject(error);
-      });
+const fetchText = url =>
+  new Promise((resolve, reject) => {
+    http.get(url, res => {
+      let data = "";
+      res.on("end", () => resolve(data));
+      res.on("data", chunk => (data += chunk));
+      res.on("error", err => reject(err));
+    });
   });
-};
 
 const populateKeys = text => {
   let data = {};
@@ -67,13 +57,17 @@ const startNodeServer = async data => {
           res.send("Invalid value...");
         }
 
-        let result = {};
-        Object.keys(data).forEach(word => {
-          if (data[word] >= n) result[word] = data[word];
-        });
+        let sorted = Object.keys(data)
+          .sort((a, b) => data[b] - data[a])
+          .map(word => {
+            let obj = {};
+            obj[word] = data[word];
+            return obj;
+          })
+          .slice(0, n);
 
         res.writeHead(200, { "Content-Type": contentType });
-        res.end(JSON.stringify(result));
+        res.end(JSON.stringify(sorted));
       } else {
         fs.readFile(filePath, (err, content) => {
           if (err) {
