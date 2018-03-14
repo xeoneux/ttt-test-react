@@ -59,11 +59,7 @@ const startNodeServer = async data => {
 
         let sorted = Object.keys(data)
           .sort((a, b) => data[b] - data[a])
-          .map(word => {
-            let obj = {};
-            obj[word] = data[word];
-            return obj;
-          })
+          .map(word => [word, data[word]])
           .slice(0, n);
 
         res.writeHead(200, { "Content-Type": contentType });
